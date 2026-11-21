@@ -1,0 +1,5 @@
+2026-11-21T03:34:10 | BCRP | OK | HTTP 200 | 13759 bytes | https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN38784BM-PN01207PM/json/2010-1/2025-12/esp
+2026-11-21T03:34:12 | MINEM | OK | HTTP 200 | 349715 bytes | SHA-256 006bcae004c7f12532c778d7d953020b238bba9e3ecb6df87d5c85f130753684 | https://cdn.www.gob.pe/uploads/document/file/9503677/7779621-bem-diciembre-2025-excel-de-anexos.xlsx?v=1772036174
+Limpieza BCRP | 192 periodos | datos_procesados/bcrp_mensual_2024200537D.csv
+Analisis VAN-TIR | 9 escenarios | salidas/resultados_van_tir_2024200537D.csv
+Analisis VAN-TIR | 9 escenarios | salidas/resultados_van_tir_2024200537D.csv

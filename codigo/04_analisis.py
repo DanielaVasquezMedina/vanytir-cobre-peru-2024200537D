@@ -176,7 +176,48 @@ tabla_tasa = pd.DataFrame(filas_tasa)
 tabla_tasa.to_csv(os.path.join(CARPETA_SALIDAS, "sensibilidad_tasa_2024200537D.csv"), index=False, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
-# 8. RESUMEN EN PANTALLA Y BITÁCORA
+# 8. PRECIO DE EQUILIBRIO: EL PRECIO DEL COBRE QUE HACE EL VAN IGUAL A CERO
+#    Es el umbral por debajo del cual el proyecto deja de ser viable.
+# ---------------------------------------------------------------------------
+
+def precio_de_equilibrio(capex_millones, tasa, limite_inferior=0.10, limite_superior=20.0, tolerancia=1e-6):
+    """Precio del cobre, en dólares por libra, que hace que el VAN sea exactamente cero.
+    Se busca por bisección, igual que la TIR, pero moviendo el precio en lugar de la tasa:
+    como a mayor precio mayor VAN, basta con partir el intervalo a la mitad hasta encontrar el cruce por cero."""
+    van_inferior = valor_actual_neto(construir_flujos(limite_inferior, capex_millones), tasa)  # VAN con un precio muy bajo (negativo)
+    van_superior = valor_actual_neto(construir_flujos(limite_superior, capex_millones), tasa)  # VAN con un precio muy alto (positivo)
+    if van_inferior * van_superior > 0:          # si ambos tienen el mismo signo, no hay cruce dentro del intervalo
+        return None
+    for _ in range(200):                         # 200 repeticiones dan precisión más que suficiente
+        punto_medio = (limite_inferior + limite_superior) / 2
+        van_medio = valor_actual_neto(construir_flujos(punto_medio, capex_millones), tasa)
+        if abs(van_medio) < tolerancia:          # el VAN ya es prácticamente cero: ese es el precio de equilibrio
+            return punto_medio
+        if van_inferior * van_medio < 0:         # el cruce está en la mitad izquierda del intervalo
+            limite_superior = punto_medio
+        else:                                    # el cruce está en la mitad derecha
+            limite_inferior, van_inferior = punto_medio, van_medio
+    return (limite_inferior + limite_superior) / 2
+
+filas_equilibrio = []
+for nombre_capex, capex in CAPEX_ESCENARIOS.items():                 # un precio de equilibrio por cada escenario de inversión
+    precio_cero = precio_de_equilibrio(capex, TASA_DESCUENTO_CENTRAL)
+    # Cuenta cuántos meses de la serie histórica 2010-2025 tuvieron un precio por debajo de ese umbral.
+    # Es la forma de conectar la volatilidad observada del cobre con el riesgo concreto del proyecto.
+    meses_debajo = int((serie_precio < precio_cero).sum())
+    filas_equilibrio.append({
+        "escenario_capex": nombre_capex,
+        "capex_millones_usd": capex,
+        "precio_equilibrio_usd_lb": round(precio_cero, 4),
+        "meses_bajo_el_umbral": meses_debajo,
+        "total_meses": len(serie_precio),
+        "porcentaje_meses_bajo_el_umbral": round(100 * meses_debajo / len(serie_precio), 1),
+    })
+tabla_equilibrio = pd.DataFrame(filas_equilibrio)
+tabla_equilibrio.to_csv(os.path.join(CARPETA_SALIDAS, "precio_equilibrio_2024200537D.csv"), index=False, encoding="utf-8")
+
+# ---------------------------------------------------------------------------
+# 9. RESUMEN EN PANTALLA Y BITÁCORA
 # ---------------------------------------------------------------------------
 print("Producción anual de cobre (millones de libras):", round(libras_cobre_por_anio(LEY_CENTRAL, RECUPERACION_CENTRAL), 1))
 print("Escenarios de precio (US$/lb):", PRECIO_ESCENARIOS)
@@ -186,6 +227,8 @@ tir_base = tasa_interna_retorno(flujos_base)
 print("  TIR (%):", round(tir_base * 100, 2) if tir_base is not None else "no existe")
 print("\nMatriz de escenarios:")
 print(tabla_escenarios.to_string(index=False))
+print("\nPrecio de equilibrio (el VAN se hace cero) y meses históricos por debajo de ese umbral:")
+print(tabla_equilibrio.to_string(index=False))
 
 with open(ARCHIVO_LOG, "a", encoding="utf-8") as log:
     log.write(f"Analisis VAN-TIR | {len(tabla_escenarios)} escenarios | salidas/resultados_van_tir_2024200537D.csv\n")

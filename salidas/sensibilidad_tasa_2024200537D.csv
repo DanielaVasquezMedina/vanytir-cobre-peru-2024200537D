@@ -1,0 +1,13 @@
+escenario_precio,precio_usd_lb,tasa_descuento_porcentaje,van_millones_usd
+P25 (precio bajo),2.5824,8.2,59.82
+P25 (precio bajo),2.5824,10.13,-108.07
+P25 (precio bajo),2.5824,12.0,-242.83
+P25 (precio bajo),2.5824,14.0,-362.95
+P50 (precio central),3.346,8.2,870.58
+P50 (precio central),3.346,10.13,608.68
+P50 (precio central),3.346,12.0,398.45
+P50 (precio central),3.346,14.0,211.08
+P75 (precio alto),3.8758,8.2,1433.1
+P75 (precio alto),3.8758,10.13,1105.97
+P75 (precio alto),3.8758,12.0,843.39
+P75 (precio alto),3.8758,14.0,609.34
