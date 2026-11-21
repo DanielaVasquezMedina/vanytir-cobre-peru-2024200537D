@@ -12,7 +12,7 @@ import pandas as pd            # pandas: para leer el CSV y construir las tablas
 # ---------------------------------------------------------------------------
 # 1. RUTAS DE ARCHIVOS
 # ---------------------------------------------------------------------------
-RUTA_PROC = "datos_procesados/bcrp_mensual_2024200537D.csv"   # tabla limpia que produce el script 03
+RUTA_PROC = "datos_procesados/datos_procesados_2024200537D.csv"   # tabla limpia que produce el script 03
 CARPETA_SALIDAS = "salidas"                                   # carpeta donde se guardan los resultados del análisis
 ARCHIVO_LOG = "log_ejecucion.txt"                             # bitácora exigida por la consigna
 os.makedirs(CARPETA_SALIDAS, exist_ok=True)                   # crea la carpeta si todavía no existe (no falla si ya está)
@@ -58,16 +58,16 @@ ANIOS_DEPRECIACION = VIDA_UTIL_ANIOS
 # ---------------------------------------------------------------------------
 precios = pd.read_csv(RUTA_PROC, parse_dates=["fecha"])       # lee la tabla limpia; convierte la columna fecha a tipo fecha
 assert "precio_cobre_usd_lb" in precios.columns, "Falta la columna del precio del cobre en dólares por libra"
-assert len(precios) == 192, f"Se esperaban 192 meses (ene-2010 a dic-2025) y hay {len(precios)}"  # control de integridad
+assert len(precios) >= 1000, f"La base tiene {len(precios)} observaciones y el mínimo exigido es 1000"
 
-serie_precio = precios["precio_cobre_usd_lb"]                 # serie mensual del precio del cobre en US$ por libra
+serie_precio = precios["precio_cobre_usd_lb"]                 # serie diaria del precio del cobre en US$ por libra
 
 # Los escenarios de precio se construyen con los percentiles de la propia serie histórica, igual que los del CAPEX.
 # Son posiciones dentro de la distribución observada 2010-2025, no pronósticos del precio futuro.
 PRECIO_ESCENARIOS = {
-    "P25 (precio bajo)": round(serie_precio.quantile(0.25), 4),    # un 25 % de los meses tuvo un precio igual o menor
+    "P25 (precio bajo)": round(serie_precio.quantile(0.25), 4),    # un 25 % de los días tuvo un precio igual o menor
     "P50 (precio central)": round(serie_precio.quantile(0.50), 4), # mediana: el valor que parte la serie en dos mitades
-    "P75 (precio alto)": round(serie_precio.quantile(0.75), 4),    # un 75 % de los meses tuvo un precio igual o menor
+    "P75 (precio alto)": round(serie_precio.quantile(0.75), 4),    # un 75 % de los días tuvo un precio igual o menor
 }
 
 # ---------------------------------------------------------------------------
@@ -202,16 +202,16 @@ def precio_de_equilibrio(capex_millones, tasa, limite_inferior=0.10, limite_supe
 filas_equilibrio = []
 for nombre_capex, capex in CAPEX_ESCENARIOS.items():                 # un precio de equilibrio por cada escenario de inversión
     precio_cero = precio_de_equilibrio(capex, TASA_DESCUENTO_CENTRAL)
-    # Cuenta cuántos meses de la serie histórica 2010-2025 tuvieron un precio por debajo de ese umbral.
+    # Cuenta cuántos días de la serie histórica 2010-2025 tuvieron un precio por debajo de ese umbral.
     # Es la forma de conectar la volatilidad observada del cobre con el riesgo concreto del proyecto.
-    meses_debajo = int((serie_precio < precio_cero).sum())
+    dias_debajo = int((serie_precio < precio_cero).sum())
     filas_equilibrio.append({
         "escenario_capex": nombre_capex,
         "capex_millones_usd": capex,
         "precio_equilibrio_usd_lb": round(precio_cero, 4),
-        "meses_bajo_el_umbral": meses_debajo,
-        "total_meses": len(serie_precio),
-        "porcentaje_meses_bajo_el_umbral": round(100 * meses_debajo / len(serie_precio), 1),
+        "dias_bajo_el_umbral": dias_debajo,
+        "total_dias": len(serie_precio),
+        "porcentaje_dias_bajo_el_umbral": round(100 * dias_debajo / len(serie_precio), 1),
     })
 tabla_equilibrio = pd.DataFrame(filas_equilibrio)
 tabla_equilibrio.to_csv(os.path.join(CARPETA_SALIDAS, "precio_equilibrio_2024200537D.csv"), index=False, encoding="utf-8")
@@ -227,7 +227,7 @@ tir_base = tasa_interna_retorno(flujos_base)
 print("  TIR (%):", round(tir_base * 100, 2) if tir_base is not None else "no existe")
 print("\nMatriz de escenarios:")
 print(tabla_escenarios.to_string(index=False))
-print("\nPrecio de equilibrio (el VAN se hace cero) y meses históricos por debajo de ese umbral:")
+print("\nPrecio de equilibrio (el VAN se hace cero) y días históricos por debajo de ese umbral:")
 print(tabla_equilibrio.to_string(index=False))
 
 with open(ARCHIVO_LOG, "a", encoding="utf-8") as log:

@@ -3,3 +3,8 @@
 Limpieza BCRP | 192 periodos | datos_procesados/bcrp_mensual_2024200537D.csv
 Analisis VAN-TIR | 9 escenarios | salidas/resultados_van_tir_2024200537D.csv
 Analisis VAN-TIR | 9 escenarios | salidas/resultados_van_tir_2024200537D.csv
+Limpieza y union | 192 filas | 10 columnas | datos_procesados/datos_procesados_2024200537D.csv
+Analisis VAN-TIR | 9 escenarios | salidas/resultados_van_tir_2024200537D.csv
+Extraccion API BCRP diaria | 16 tramos | 4174 dias | HTTP 200 | datos_crudos/bcrp/bcrp_api_respuesta_cruda.json
+Limpieza y union diaria | 3974 observaciones | 12 columnas | datos_procesados/datos_procesados_2024200537D.csv
+Analisis VAN-TIR | 9 escenarios | salidas/resultados_van_tir_2024200537D.csv

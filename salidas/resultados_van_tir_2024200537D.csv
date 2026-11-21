@@ -1,10 +1,10 @@
 escenario_precio,precio_usd_lb,escenario_capex,capex_millones_usd,van_millones_usd,tir_porcentaje
-P25 (precio bajo),2.5824,P25 (inversión baja),573.4,594.04,25.01
-P25 (precio bajo),2.5824,P50 (central),1388.0,-108.07,8.85
-P25 (precio bajo),2.5824,P75 (inversión alta),2220.1,-825.27,3.49
-P50 (precio central),3.346,P25 (inversión baja),573.4,1310.79,41.18
-P50 (precio central),3.346,P50 (central),1388.0,608.68,16.78
-P50 (precio central),3.346,P75 (inversión alta),2220.1,-108.52,9.33
-P75 (precio alto),3.8758,P25 (inversión baja),573.4,1808.09,52.15
-P75 (precio alto),3.8758,P50 (central),1388.0,1105.97,21.79
-P75 (precio alto),3.8758,P75 (inversión alta),2220.1,388.77,12.89
+P25 (precio bajo),2.7997,P25 (inversión baja),573.4,798.01,29.69
+P25 (precio bajo),2.7997,P50 (central),1388.0,95.9,11.24
+P25 (precio bajo),2.7997,P75 (inversión alta),2220.1,-621.3,5.27
+P50 (precio central),3.3137,P25 (inversión baja),573.4,1280.47,40.5
+P50 (precio central),3.3137,P50 (central),1388.0,578.36,16.47
+P50 (precio central),3.3137,P75 (inversión alta),2220.1,-138.84,9.1
+P75 (precio alto),3.9984,P25 (inversión baja),573.4,1923.16,54.68
+P75 (precio alto),3.9984,P50 (central),1388.0,1221.05,22.91
+P75 (precio alto),3.9984,P75 (inversión alta),2220.1,503.85,13.67
