@@ -10,7 +10,9 @@ import hashlib
 import requests
 
 URL = "https://cdn.www.gob.pe/uploads/document/file/9503677/7779621-bem-diciembre-2025-excel-de-anexos.xlsx?v=1772036174"
-CABECERAS = {"User-Agent": "Estudiante-UNCP-Finanzas-I/1.0 (trabajo academico)"}
+# Mismo criterio que en 01: el User-Agent se lee de una variable de entorno.
+USER_AGENT_POR_OMISION = "Estudiante-UNCP-Finanzas-I/1.0 (trabajo academico)"
+CABECERAS = {"User-Agent": os.environ.get("MINEM_USER_AGENT", USER_AGENT_POR_OMISION)}
 TIMEOUT = 60
 CARPETA = "datos_crudos/minem"
 RUTA = os.path.join(CARPETA, "bem_anexos_dic2025.xlsx")

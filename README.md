@@ -4,50 +4,73 @@
 - **Código de matrícula:** 2024200537D
 - **Curso:** Finanzas I (055D), Escuela Profesional de Economía, UNCP
 - **Tema:** 50, Unidad II
+- **Repositorio:** https://github.com/DanielaVasquezMedina/vanytir-cobre-peru-2024200537D
 
 ## Objetivo
 Evaluar la viabilidad financiera de un proyecto minero de cobre tipo en el Perú mediante el VAN y la TIR,
 y medir su sensibilidad frente a la volatilidad histórica del precio del cobre entre 2010 y 2025.
 
-## Fuentes de datos
-| Vía | Fuente | Variables | Script |
-|---|---|---|---|
-| 1 (API) | BCRP, series PD04701XD, PD04637PD y PD04638PD | Cobre Londres (cUS$/lb), tipo de cambio interbancario compra y venta (S/ por US$), frecuencia diaria | codigo/01_extraccion_api.py |
-| 2 (descarga programática) | MINEM, Excel de Anexos del BEM Diciembre 2025 | Producción nacional de cobre (TMF) y cartera CPIM (CAPEX, US$ millones) | codigo/02_scraping_web.py |
+## Fuentes de datos y endpoints
+| Vía | Fuente | Endpoint o URL | Variables | Script |
+|---|---|---|---|---|
+| 1 (API) | BCRP, estadísticas series | https://estadisticas.bcrp.gob.pe/estadisticas/series/api/{series}/json/{desde}/{hasta}/esp | Series PD04701XD (cobre Londres, cUS$/lb), PD04637PD y PD04638PD (tipo de cambio interbancario compra y venta, S/ por US$), frecuencia diaria | codigo/01_extraccion_api.py |
+| 2 (descarga programática) | MINEM, Excel de Anexos del BEM Diciembre 2025 | https://cdn.www.gob.pe/uploads/document/file/9503677/7779621-bem-diciembre-2025-excel-de-anexos.xlsx | Producción nacional de cobre (TMF) y cartera CPIM (CAPEX, US$ millones) | codigo/02_scraping_web.py |
 
-Ventana de extracción: 1 de enero de 2010 a 31 de diciembre de 2025.
+Ventana de extracción congelada en los scripts: FECHA_INICIO = 2010-01-01 y FECHA_CORTE = 2025-12-31.
 Base procesada: **3 974 observaciones diarias** y 12 columnas, de las cuales 7 son variables sustantivas.
 El mínimo exigido por el numeral 2.4.1 es de 1 000 observaciones, 6 columnas y 4 variables sustantivas.
+
+## Claves de API
+Ninguna de las dos fuentes exige clave. La API del BCRP es de acceso público y el archivo del MINEM se
+descarga desde una URL abierta, por lo que el docente puede ejecutar los scripts sin credenciales propias.
+El archivo `.env.example` documenta esa situación y declara las dos variables que sí admite el proyecto,
+BCRP_USER_AGENT y MINEM_USER_AGENT, usadas para el User-Agent identificable que exige el numeral 2.4.8.
+Si no se definen, los scripts usan un valor por omisión.
 
 ## Parámetros del modelo y su fuente
 | Parámetro | Valor | Fuente |
 |---|---|---|
 | Capacidad de planta | 80 000 t/día; 483 Mt en total | PEA actualizado de Cotabambas, comunicado de Panoro del 22-09-2015 |
 | Vida útil | 17 años | PEA actualizado de Cotabambas |
-| Ley de alimentación | 0,318 % Cu | Cálculo propio, promedio ponderado del PEA |
+| Ley de alimentación | 0.318 % Cu | Cálculo propio, promedio ponderado del PEA |
 | Recuperación metalúrgica | 84 % | Informe NI 43-101 de La Granja, Tabla 13-1 (pórfido fresco) |
-| Costo operativo | 8,38 US$/t procesada | PEA actualizado de Cotabambas |
-| CAPEX (P25 / P50 / P75) | 573,4 / 1 388,0 / 2 220,1 millones US$ | Cartera CPIM del MINEM, muestra de 24 proyectos nuevos de cobre |
-| Impuesto a la renta | 29,50 % | Artículo 55 del TUO de la Ley del Impuesto a la Renta |
-| Tasa de descuento | 10,13 % | Cálculo propio: WACC de Metals and Mining de Damodaran ajustado por riesgo país de Perú |
+| Costo operativo | 8.38 US$/t procesada | PEA actualizado de Cotabambas (mina 3.59 + procesamiento 4.38 + G&A 0.41) |
+| CAPEX (P25 / P50 / P75) | 573.4 / 1 388.0 / 2 220.1 millones US$ | Cartera CPIM del MINEM, muestra de 24 proyectos nuevos de cobre |
+| Impuesto a la renta | 29.50 % | Artículo 55 del TUO de la Ley del Impuesto a la Renta |
+| Tasa de descuento | 10.13 % | Cálculo propio: WACC de Metals and Mining de Damodaran ajustado por riesgo país de Perú |
 
 ## Resultados principales
-- Producción anual estimada: 167,3 millones de libras de cobre.
-- Escenarios de precio (percentiles de la serie diaria): 2,7997 / 3,3137 / 3,9984 US$/lb.
-- Caso base (precio y CAPEX centrales): **VAN de 578,36 millones US$** y **TIR de 16,47 %**.
-- Precio de equilibrio con CAPEX central: **2,6975 US$/lb**. El precio estuvo por debajo en **821 de los 3 974 días (20,7 %)**.
-- Con CAPEX alto el umbral sube a 3,4616 US$/lb y el 55,9 % de los días quedó por debajo.
+- Producción anual estimada: 167.3 millones de libras de cobre recuperado.
+- Escenarios de precio (percentiles de la serie diaria): 2.7997 / 3.3137 / 3.9984 US$/lb.
+- Caso base: **VAN de 578.36 millones US$**, **TIR de 16.47 %** y **recuperación descontada en 8.73 años**.
+- Precio de equilibrio con CAPEX central: **2.6975 US$/lb**. El precio estuvo por debajo en **821 de los 3 974 días (20.7 %)**.
+- Con CAPEX alto el umbral sube a 3.4616 US$/lb y el 55.9 % de los días quedó por debajo.
 
 ## Orden de ejecución
-1. codigo/01_extraccion_api.py: descarga las tres series diarias del BCRP en 16 tramos anuales, con pausa de 1 segundo entre solicitudes, y guarda el crudo sin modificar.
-2. codigo/02_scraping_web.py: descarga programática del Excel del MINEM y cálculo de su SHA-256.
-3. codigo/03_limpieza_datos.py: limpieza, variables derivadas, unión de las dos fuentes por la llave anio y verificación cruzada.
-4. codigo/04_analisis.py: VAN, TIR, escenarios, sensibilidad a la tasa y precio de equilibrio.
+1. `codigo/01_extraccion_api.py`: descarga las tres series diarias del BCRP en 16 tramos anuales, con pausa de 1 segundo entre solicitudes, y guarda el crudo sin modificar.
+2. `codigo/02_scraping_web.py`: descarga programática del Excel del MINEM y cálculo de su SHA-256.
+3. `codigo/03_limpieza_datos.py`: limpieza, variables derivadas, unión de las dos fuentes por la llave `anio` y verificación cruzada con la hoja 5 del MINEM.
+4. `codigo/04_analisis.py`: VAN, TIR, recuperación descontada, precio de equilibrio, escenarios, sensibilidad y las seis figuras.
 
-## Reproducción
-Instalar las dependencias y ejecutar los scripts en orden desde la raíz del repositorio:
+## Entorno de ejecución
+- Lenguaje: Python 3.13.18
+
+| Librería | Versión |
+|---|---|
+| requests | 2.32.4 |
+| pandas | 2.2.3 |
+| matplotlib | 3.10.0 |
+| openpyxl | 3.1.5 |
+
+Reproducción, desde la raíz del repositorio:
 
     pip install -r requirements.txt
+
+## Salidas que genera el script 04
+En `salidas/`: cuatro tablas en CSV (flujos de caja, resultados de VAN y TIR, sensibilidad a la tasa y
+precio de equilibrio), más `indicadores_caso_base_2024200537D.csv` con los tres indicadores del caso base,
+y seis figuras en PNG. Cinco de esas figuras se usan en el artículo; la de sensibilidad a la tasa se reserva
+para el dashboard, porque el gráfico de tornado ya cubre ese análisis en el artículo.
 
 ## Integridad de los archivos (SHA-256)
 | Archivo | Huella |
@@ -58,7 +81,8 @@ Instalar las dependencias y ejecutar los scripts en orden desde la raíz del rep
 
 ## Limitaciones declaradas
 - El proyecto evaluado es un caso tipo construido con parámetros de proyectos reales, no un proyecto existente.
-- Los ingresos consideran únicamente cobre; no se incluyen oro ni plata.
+- Los ingresos consideran únicamente cobre; no se incluyen oro ni plata, que el PEA sí contempla.
+- La producción es de cobre recuperado, no pagable. El PEA declara un pay factor de 96.3 % a 96.5 %.
 - El CAPEX proviene de la cartera del MINEM (2025) y los costos operativos del PEA de 2015: no se ajustaron por inflación.
 - La depreciación es lineal a 17 años, un supuesto económico simplificado, no la depreciación tributaria peruana por tipo de activo.
 - No se modelan regalía minera, impuesto especial a la minería ni gravamen especial a la minería.
@@ -71,4 +95,5 @@ documentación del código, la verificación de fuentes y la discusión metodol�
 la validación de fuentes y la interpretación de resultados fueron realizadas y son sustentadas por la autora.
 
 ## Registro
-Cada ejecución agrega una línea a log_ejecucion.txt.
+Cada ejecución agrega una línea a `log_ejecucion.txt` con la fecha, la hora, el código de respuesta HTTP y el
+número de filas o bytes obtenidos.

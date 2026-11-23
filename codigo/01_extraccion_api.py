@@ -28,8 +28,12 @@ FORMATO = "json"
 PAUSA_SEGUNDOS = 1.0
 TIMEOUT = 60
 
-# User-Agent identificable, también exigido por la consigna
-CABECERAS = {"User-Agent": "Proyecto academico UNCP - Finanzas I - 2024200537D"}
+# User-Agent identificable, exigido por el numeral 2.4.8 de la consigna.
+# Se lee de la variable de entorno BCRP_USER_AGENT para no fijar datos de contacto
+# dentro del código, conforme al numeral 2.4.4. Si la variable no está definida se usa
+# el valor por omisión, de modo que el script corre igual en una máquina limpia.
+USER_AGENT_POR_OMISION = "Proyecto academico UNCP - Finanzas I - 2024200537D"
+CABECERAS = {"User-Agent": os.environ.get("BCRP_USER_AGENT", USER_AGENT_POR_OMISION)}
 
 BASE = "https://estadisticas.bcrp.gob.pe/estadisticas/series/api"
 CARPETA_CRUDO = "datos_crudos/bcrp"
