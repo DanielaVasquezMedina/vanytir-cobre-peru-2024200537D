@@ -5,10 +5,17 @@
 
 # Vía 1 (API): descarga de tres series DIARIAS del BCRP mediante su API pública.
 # Entrada : ninguna (los datos se piden directamente al servidor del BCRP)
-# Salida  : datos_crudos/bcrp/bcrp_api_respuesta_cruda.json (respuesta tal cual, sin modificar)
+# Salidas : datos_crudos/bcrp/bcrp_api_respuesta_cruda.json (respuesta tal cual, sin modificar)
+#           datos_crudos/datos_crudos_2024200537D.csv (la misma respuesta volcada a tabla,
+#           sin ninguna limpieza, con el codigo de matricula en el nombre como pide el
+#           numeral 2.4.2 de la consigna)
 import os
+import csv
 import json
 import time
+import hashlib
+from datetime import datetime
+
 import requests
 
 # ---------------------------------------------------------------------------
@@ -38,8 +45,26 @@ CABECERAS = {"User-Agent": os.environ.get("BCRP_USER_AGENT", USER_AGENT_POR_OMIS
 BASE = "https://estadisticas.bcrp.gob.pe/estadisticas/series/api"
 CARPETA_CRUDO = "datos_crudos/bcrp"
 RUTA_CRUDO = os.path.join(CARPETA_CRUDO, "bcrp_api_respuesta_cruda.json")
+# El numeral 2.4.2 exige que los archivos de datos lleven el codigo de matricula en el
+# nombre. Este CSV es el mismo contenido del JSON puesto en forma de tabla, sin convertir
+# tipos ni corregir nada: los valores van tal como los entrega el BCRP, incluido "n.d.".
+RUTA_CRUDO_CSV = os.path.join("datos_crudos", "datos_crudos_2024200537D.csv")
 ARCHIVO_LOG = "log_ejecucion.txt"
 os.makedirs(CARPETA_CRUDO, exist_ok=True)
+
+
+def huella_sha256(ruta):
+    """Devuelve la huella SHA-256 de un archivo, o None si el archivo no existe.
+    Sirve para comprobar la integridad y para comparar una descarga con la anterior."""
+    if not os.path.exists(ruta):
+        return None
+    with open(ruta, "rb") as archivo:
+        return hashlib.sha256(archivo.read()).hexdigest()
+
+
+# Huella de la descarga anterior, tomada ANTES de sobrescribir el archivo. Permite saber
+# si el BCRP revisó la serie entre una extracción y otra (numeral 2.4.5 de la consigna).
+HUELLA_ANTERIOR = huella_sha256(RUTA_CRUDO)
 
 anio_inicio = int(FECHA_INICIO[:4])
 anio_fin = int(FECHA_CORTE[:4])
@@ -92,8 +117,71 @@ with open(RUTA_CRUDO, "w", encoding="utf-8") as archivo:
     json.dump(crudo, archivo, ensure_ascii=False)
 
 total_dias = sum(r["n_periodos"] for r in respuestas)
-print("\nArchivo crudo:", RUTA_CRUDO)
+print("\nArchivo crudo (JSON):", RUTA_CRUDO)
 print("Tramos descargados:", len(respuestas), "| Total de días:", total_dias)
 
+# ---------------------------------------------------------------------------
+# 4. EL MISMO CRUDO EN FORMATO CSV, CON EL CÓDIGO DE MATRÍCULA EN EL NOMBRE
+# ---------------------------------------------------------------------------
+# Esto NO es limpieza: no se convierten tipos, no se descartan filas, no se renombran
+# variables y no se calcula nada. Cada fila es un periodo tal como lo devolvió la API y
+# cada valor es la cadena de texto original, incluido el "n.d." de los días sin cotización.
+# La limpieza ocurre después, en 03_limpieza_datos.py, que lee el JSON.
+#
+# Cuidado con un detalle: la API NO devuelve las series en el orden en que se piden.
+# Por eso las columnas se identifican por el nombre que el propio BCRP les da y los
+# valores se asignan por nombre, nunca por posición.
+nombres_series = [s["name"] for s in respuestas[0]["contenido"]["config"]["series"]]
+COLUMNAS = ["periodo"] + nombres_series
+
+filas_csv = []
+for tramo in respuestas:
+    # Nombres de las series de ESTE tramo, en el orden en que llegaron
+    nombres_tramo = [s["name"] for s in tramo["contenido"]["config"]["series"]]
+    assert set(nombres_tramo) == set(nombres_series), (
+        f"El tramo {tramo['anio']} devolvió series distintas: {nombres_tramo}")
+
+    for periodo in tramo["contenido"]["periods"]:
+        fila = {"periodo": periodo["name"]}            # p. ej. "01.Dic.25", sin convertir
+        for nombre, valor in zip(nombres_tramo, periodo["values"]):
+            fila[nombre] = valor                       # el valor queda como texto, sin tocar
+        filas_csv.append(fila)
+
+with open(RUTA_CRUDO_CSV, "w", encoding="utf-8", newline="") as archivo:
+    escritor = csv.DictWriter(archivo, fieldnames=COLUMNAS)
+    escritor.writeheader()
+    escritor.writerows(filas_csv)
+
+assert len(filas_csv) == total_dias, "El CSV crudo no tiene una fila por periodo descargado"
+print("Archivo crudo (CSV):", RUTA_CRUDO_CSV, "|", len(filas_csv), "filas |", len(COLUMNAS), "columnas")
+
+# ---------------------------------------------------------------------------
+# 5. INTEGRIDAD Y COMPARACIÓN CON LA DESCARGA ANTERIOR
+# ---------------------------------------------------------------------------
+# El numeral 2.4.5 admite que una fuente viva revise sus datos hacia atrás. Comparar la
+# huella de esta descarga con la de la anterior permite demostrar si la serie cambió.
+huella_json = huella_sha256(RUTA_CRUDO)
+huella_csv = huella_sha256(RUTA_CRUDO_CSV)
+print("\nSHA-256 del JSON:", huella_json)
+print("SHA-256 del CSV :", huella_csv)
+
+if HUELLA_ANTERIOR is None:
+    estado_fuente = "primera extraccion, sin descarga previa con la que comparar"
+elif HUELLA_ANTERIOR == huella_json:
+    estado_fuente = "sin cambios respecto de la descarga anterior"
+else:
+    estado_fuente = "ATENCION: la fuente cambio respecto de la descarga anterior"
+print(estado_fuente.upper() if estado_fuente.startswith("ATENCION") else estado_fuente)
+
+# ---------------------------------------------------------------------------
+# 6. REGISTRO EN LA BITÁCORA
+# ---------------------------------------------------------------------------
+# El numeral 2.4.2 pide fecha y hora de cada extracción, número de filas y código HTTP.
+sello = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 with open(ARCHIVO_LOG, "a", encoding="utf-8") as log:
-    log.write(f"Extraccion API BCRP diaria | {len(respuestas)} tramos | {total_dias} dias | HTTP 200 | {RUTA_CRUDO}\n")
+    log.write(
+        f"{sello} | Extraccion API BCRP diaria | {len(respuestas)} tramos | "
+        f"{total_dias} dias | HTTP 200 | {RUTA_CRUDO} | SHA-256 {huella_json}\n")
+    log.write(
+        f"{sello} | Crudo en CSV | {len(filas_csv)} filas | {len(COLUMNAS)} columnas | "
+        f"{RUTA_CRUDO_CSV} | SHA-256 {huella_csv} | {estado_fuente}\n")

@@ -75,6 +75,33 @@ PRECIO_ESCENARIOS = {
     "P75 (precio alto)": round(serie_precio.quantile(0.75), 4),    # un 75 % de los días tuvo un precio igual o menor
 }
 
+# --- Justificación de la frecuencia diaria -------------------------------------------
+# El docente autorizó también la frecuencia trimestral. Este bloque compara las dos para
+# documentar por qué se trabaja con la diaria, en lugar de afirmarlo sin evidencia.
+# Promediar por trimestre conserva los percentiles, pero suaviza los extremos, que es
+# justamente lo que mide un trabajo sobre volatilidad.
+trimestral = (precios.set_index("fecha")["precio_cobre_usd_lb"]
+              .resample("QE").mean().dropna())
+
+comparacion_frecuencia = pd.DataFrame([
+    {"frecuencia": "Diaria", "observaciones": len(serie_precio),
+     "p25": serie_precio.quantile(0.25), "p50": serie_precio.quantile(0.50),
+     "p75": serie_precio.quantile(0.75), "minimo": serie_precio.min(),
+     "maximo": serie_precio.max(), "recorrido": serie_precio.max() - serie_precio.min()},
+    {"frecuencia": "Trimestral", "observaciones": len(trimestral),
+     "p25": trimestral.quantile(0.25), "p50": trimestral.quantile(0.50),
+     "p75": trimestral.quantile(0.75), "minimo": trimestral.min(),
+     "maximo": trimestral.max(), "recorrido": trimestral.max() - trimestral.min()},
+]).round(4)
+
+# Cuánto del recorrido del precio se pierde al promediar por trimestre.
+recorrido_diario = comparacion_frecuencia.loc[0, "recorrido"]
+recorrido_trimestral = comparacion_frecuencia.loc[1, "recorrido"]
+PERDIDA_RECORRIDO_PCT = (1 - recorrido_trimestral / recorrido_diario) * 100
+comparacion_frecuencia.to_csv(
+    os.path.join(CARPETA_SALIDAS, "comparacion_frecuencia_2024200537D.csv"),
+    index=False, encoding="utf-8")
+
 # ---------------------------------------------------------------------------
 # 4. FUNCIONES DE CÁLCULO
 # ---------------------------------------------------------------------------
@@ -226,7 +253,62 @@ for nombre_capex, capex in CAPEX_ESCENARIOS.items():                 # un precio
 tabla_equilibrio = pd.DataFrame(filas_equilibrio)
 tabla_equilibrio.to_csv(os.path.join(CARPETA_SALIDAS, "precio_equilibrio_2024200537D.csv"), index=False, encoding="utf-8")
 # ---------------------------------------------------------------------------
-# 9. FIGURAS DEL ARTÍCULO
+# 9. EL PROYECTO MODELADO EN EL CONTEXTO DE LA PRODUCCIÓN NACIONAL
+#    Este es el único resultado que usa las TRES series extraídas a la vez: la producción
+#    anual de cobre del Perú (Vía 2, Excel del MINEM) y el precio del cobre y el tipo de
+#    cambio (Vía 1, API del BCRP). Sirve para dimensionar el proyecto y para que ninguna
+#    de las dos fuentes quede sin participar en un resultado del artículo.
+# ---------------------------------------------------------------------------
+for columna in ["produccion_cobre_peru_tmf", "valor_produccion_cobre_mill_usd",
+                "tc_interbancario_promedio_sol_usd", "anio"]:
+    assert columna in precios.columns, f"Falta la columna {columna}, que produce el script 03"
+
+# Producción anual del proyecto en toneladas métricas finas. Se deriva de la MISMA función
+# que alimenta el flujo de caja, nunca de un número escrito a mano, para que la tabla y el
+# modelo financiero no puedan discrepar.
+proyecto_mlb = libras_cobre_por_anio(LEY_CENTRAL, RECUPERACION_CENTRAL)
+proyecto_tmf = proyecto_mlb * 1_000_000 / LIBRAS_POR_TONELADA
+
+# La producción del MINEM es ANUAL y la serie del BCRP es DIARIA: al unirlas, el script 03
+# repite la producción del año en cada día. Por eso acá se toma el primer valor del año y
+# NO la suma, que multiplicaría la producción por el número de días hábiles.
+assert (precios.groupby("anio")["produccion_cobre_peru_tmf"].nunique() == 1).all(), \
+    "Hay años con más de un valor de producción: la unión del script 03 no es correcta"
+
+tabla_contexto = precios.groupby("anio").agg(
+    produccion_peru_tmf=("produccion_cobre_peru_tmf", "first"),
+    precio_promedio_usd_lb=("precio_cobre_usd_lb", "mean"),
+    tc_promedio_sol_usd=("tc_interbancario_promedio_sol_usd", "mean"),
+    valor_produccion_mill_usd=("valor_produccion_cobre_mill_usd", "mean"),
+    dias_con_dato=("fecha", "size"),
+).reset_index()
+
+# Participación del proyecto en la producción nacional de cada año.
+tabla_contexto["participacion_proyecto_pct"] = proyecto_tmf / tabla_contexto["produccion_peru_tmf"] * 100
+
+# Valor de la producción expresado en soles. Es el único uso analítico del tipo de cambio:
+# la recaudación minera (impuesto a la renta, canon y regalías) se percibe en moneda nacional,
+# de modo que el valor en soles es la magnitud relevante para el fisco peruano.
+tabla_contexto["valor_produccion_mill_soles"] = (
+    tabla_contexto["valor_produccion_mill_usd"] * tabla_contexto["tc_promedio_sol_usd"])
+
+# Control de consistencia: el promedio anual de la columna de valor que produce el script 03
+# debe coincidir con producción x libras por tonelada x precio promedio del año. Si no coincide,
+# la unión de las fuentes o el cálculo del valor están mal y el script se detiene.
+control = (tabla_contexto["produccion_peru_tmf"] * LIBRAS_POR_TONELADA
+           * tabla_contexto["precio_promedio_usd_lb"] / 1_000_000)
+assert ((tabla_contexto["valor_produccion_mill_usd"] - control).abs() < 0.01).all(), \
+    "El valor de la producción no cuadra con producción x precio promedio"
+
+tabla_contexto = tabla_contexto[["anio", "produccion_peru_tmf", "participacion_proyecto_pct",
+                                 "precio_promedio_usd_lb", "tc_promedio_sol_usd",
+                                 "valor_produccion_mill_usd", "valor_produccion_mill_soles",
+                                 "dias_con_dato"]].round(4)
+tabla_contexto.to_csv(os.path.join(CARPETA_SALIDAS, "contexto_nacional_2024200537D.csv"),
+                      index=False, encoding="utf-8")
+
+# ---------------------------------------------------------------------------
+# 10. FIGURAS DEL ARTÍCULO
 #    Se generan desde este mismo script para que el artículo, el póster y el dashboard
 #    muestren exactamente los mismos números que las tablas.
 # ---------------------------------------------------------------------------
@@ -524,11 +606,54 @@ print("\nFiguras generadas en la carpeta salidas:")
 for nombre in sorted(f for f in os.listdir(CARPETA_SALIDAS) if f.endswith(".png")):
     print("  ", nombre)
 
+# --- Figura sin numerar: contexto nacional. NO se incluye en el artículo, donde estos datos
+#     van en la Tabla 1. Se genera para el Beamer y el dashboard, igual que la figura 3.
+#     Dos paneles en lugar de dos ejes verticales en el mismo gráfico: superponer dos escalas
+#     distintas en un solo eje es engañoso, porque la forma de las curvas dependería de la
+#     escala elegida y no de los datos.
+fig, (arriba, abajo) = plt.subplots(2, 1, figsize=(10, 7), sharex=True)
+
+# Panel superior: qué parte de la producción nacional representaría el proyecto cada año.
+# Se grafica la participación y no la producción del proyecto en valor absoluto, porque una
+# línea plana al 3 % de la altura de las barras no se distinguiría del eje.
+arriba.plot(tabla_contexto["anio"], tabla_contexto["participacion_proyecto_pct"],
+            marker="o", markersize=6, linewidth=2, color=AZUL)
+# Se rotulan solo el primer y el último punto: poner el número sobre cada punto satura la figura.
+for posicion, alineacion in [(0, "left"), (len(tabla_contexto) - 1, "right")]:
+    fila = tabla_contexto.iloc[posicion]
+    arriba.annotate(f"{num(fila['participacion_proyecto_pct'], 1)} %",
+                    (fila["anio"], fila["participacion_proyecto_pct"]),
+                    textcoords="offset points", xytext=(0, 10),
+                    ha=alineacion, fontsize=9.5, color=AZUL)
+formato_del_eje(arriba.yaxis, 1)
+arriba.set_ylim(0, tabla_contexto["participacion_proyecto_pct"].max() * 1.35)
+arriba.set_title(f"Participación del proyecto modelado en la producción nacional de cobre\n"
+                 f"({num(proyecto_tmf, 0)} toneladas métricas finas al año)", fontsize=11)
+arriba.set_ylabel("Porcentaje de la producción del Perú")
+
+# Panel inferior: valor de la producción nacional. Combina la producción del MINEM con el
+# precio del BCRP, y muestra por qué el precio pesa tanto: entre 2010 y 2025 la producción
+# se multiplicó por 2.2, pero el valor por 2.9.
+abajo.bar(tabla_contexto["anio"], tabla_contexto["valor_produccion_mill_usd"] / 1_000,
+          color=VERDE, width=0.68)
+formato_del_eje(abajo.yaxis, 1)
+abajo.set_title("Valor de la producción nacional de cobre a precio de Londres", fontsize=11)
+abajo.set_ylabel("Miles de millones de US$")
+abajo.set_xticks(tabla_contexto["anio"])
+abajo.tick_params(axis="x", labelsize=8.5)
+
+fig.tight_layout()
+fig.savefig(os.path.join(CARPETA_SALIDAS, "fig_contexto_nacional_2024200537D.png"), bbox_inches="tight")
+plt.close(fig)
+
 # ---------------------------------------------------------------------------
-# 10. RESUMEN EN PANTALLA Y BITÁCORA
+# 11. RESUMEN EN PANTALLA Y BITÁCORA
 # ---------------------------------------------------------------------------
 print("Producción anual de cobre (millones de libras):", round(libras_cobre_por_anio(LEY_CENTRAL, RECUPERACION_CENTRAL), 1))
 print("Escenarios de precio (US$/lb):", PRECIO_ESCENARIOS)
+print("\nFrecuencia diaria frente a trimestral (justifica la frecuencia elegida):")
+print(comparacion_frecuencia.to_string(index=False))
+print(f"  Al promediar por trimestre se pierde el {num(PERDIDA_RECORRIDO_PCT, 0)} % del recorrido del precio")
 print("\nCaso base (precio y CAPEX centrales):")
 print("  VAN (millones US$):", round(valor_actual_neto(flujos_base, TASA_DESCUENTO_CENTRAL), 2))
 tir_base = tasa_interna_retorno(flujos_base)
@@ -541,6 +666,13 @@ print("\nMatriz de escenarios:")
 print(tabla_escenarios.to_string(index=False))
 print("\nPrecio de equilibrio (el VAN se hace cero) y días históricos por debajo de ese umbral:")
 print(tabla_equilibrio.to_string(index=False))
+
+print("\nEl proyecto en el contexto de la producción nacional:")
+print(f"  Producción anual del proyecto: {num(proyecto_tmf, 0)} TMF ({num(proyecto_mlb, 1)} millones de libras)")
+print(f"  Participación en la producción nacional: {num(tabla_contexto['participacion_proyecto_pct'].iloc[-1], 1)} % en "
+      f"{int(tabla_contexto['anio'].iloc[-1])}, frente a {num(tabla_contexto['participacion_proyecto_pct'].iloc[0], 1)} % en "
+      f"{int(tabla_contexto['anio'].iloc[0])}")
+print(tabla_contexto.to_string(index=False))
 
 # Los tres indicadores del caso base se guardan tambien en un CSV, para que el articulo,
 # el Beamer, el poster y el dashboard tomen las cifras de un archivo y no de la pantalla.
@@ -556,3 +688,5 @@ pd.DataFrame([{
 
 with open(ARCHIVO_LOG, "a", encoding="utf-8") as log:
     log.write(f"Analisis VAN-TIR | {len(tabla_escenarios)} escenarios | salidas/resultados_van_tir_2024200537D.csv\n")
+    log.write(f"Contexto nacional | {len(tabla_contexto)} anios | {len(tabla_contexto.columns)} columnas | "
+              f"salidas/contexto_nacional_2024200537D.csv\n")

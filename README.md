@@ -47,7 +47,7 @@ Si no se definen, los scripts usan un valor por omisión.
 - Con CAPEX alto el umbral sube a 3.4616 US$/lb y el 55.9 % de los días quedó por debajo.
 
 ## Orden de ejecución
-1. `codigo/01_extraccion_api.py`: descarga las tres series diarias del BCRP en 16 tramos anuales, con pausa de 1 segundo entre solicitudes, y guarda el crudo sin modificar.
+1. `codigo/01_extraccion_api.py`: descarga las tres series diarias del BCRP en 16 tramos anuales, con pausa de 1 segundo entre solicitudes, y guarda el crudo sin modificar en dos formatos: la respuesta original en JSON y la misma respuesta volcada a tabla en `datos_crudos/datos_crudos_2024200537D.csv`. El CSV no aplica ninguna limpieza: los valores van tal como los entrega la API, incluido el `n.d.` de los días sin cotización. Al final calcula la huella SHA-256 de ambos archivos y la compara con la de la descarga anterior, para detectar si la fuente revisó la serie.
 2. `codigo/02_scraping_web.py`: descarga programática del Excel del MINEM y cálculo de su SHA-256.
 3. `codigo/03_limpieza_datos.py`: limpieza, variables derivadas, unión de las dos fuentes por la llave `anio` y verificación cruzada con la hoja 5 del MINEM.
 4. `codigo/04_analisis.py`: VAN, TIR, recuperación descontada, precio de equilibrio, escenarios, sensibilidad y las seis figuras.
@@ -77,7 +77,18 @@ para el dashboard, porque el gráfico de tornado ya cubre ese análisis en el ar
 |---|---|
 | datos_procesados/datos_procesados_2024200537D.csv | 3d68a8756f9c623b892122f6a6b055bb266f3f698fd3458641a20368fb1bde69 |
 | datos_crudos/bcrp/bcrp_api_respuesta_cruda.json | 24b67cd0622f139a17298ee5985a26a4cdc02096dea35fa355d06c9c9ff5304d |
+| datos_crudos/datos_crudos_2024200537D.csv | 20abd4384ec470d3ad37b55b2ef5139b582b8d0586701d4cde491d658856a356 |
 | datos_crudos/minem/bem_anexos_dic2025.xlsx | 006bcae004c7f12532c778d7d953020b238bba9e3ecb6df87d5c85f130753684 |
+
+## Trazabilidad del número de observaciones
+El archivo crudo tiene 4 174 filas, una por cada día hábil que devolvió la API entre el 01-01-2010 y el
+31-12-2025. De ellas, 200 tienen `n.d.` en al menos una de las tres series: 11 días sin cotización del cobre
+y 196 sin tipo de cambio, con 7 días a los que les faltan ambos. Al descartarlas quedan las **3 974
+observaciones completas** del archivo procesado. La resta se puede comprobar directamente sobre
+`datos_crudos/datos_crudos_2024200537D.csv`.
+
+Una reejecución del script 01 realizada el 22-11-2026 devolvió un archivo JSON idéntico byte por byte al de
+la extracción original, de modo que la serie no fue revisada por la fuente entre ambas fechas.
 
 ## Limitaciones declaradas
 - El proyecto evaluado es un caso tipo construido con parámetros de proyectos reales, no un proyecto existente.

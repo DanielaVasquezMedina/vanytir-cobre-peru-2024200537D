@@ -1,0 +1,129 @@
+% ---------------------------------------------------------------------------
+% Artículo científico de aplicación - Finanzas I (Unidad II)
+% Daniela Andrea Vásquez Medina - 2024200537D - Tema 50
+% Sección 2: Materiales y métodos. Apartados 2.1 y 2.2 (borrador 2).
+% Numeración tomada del artículo de la Unidad I: Antecedentes = 1, Métodos = 2.
+%
+% Se incluye en el documento principal con \input{secciones/03_metodos}
+% Las citas usan las claves de articulo/referencias.bib
+% ---------------------------------------------------------------------------
+
+\section{Materiales y métodos}
+
+\subsection{Enfoque, tipo, nivel y diseño}
+
+La investigación es de tipo aplicada, porque no busca generar teoría nueva sino
+emplear herramientas de evaluación financiera ya establecidas para resolver un
+problema concreto de decisión. El enfoque es cuantitativo, ya que todas las
+conclusiones se derivan del cálculo de indicadores numéricos sobre datos
+observados. El diseño es no experimental, dado que las variables no se
+manipulan: el precio del cobre y el tipo de cambio se toman tal como ocurrieron
+en el mercado. Por último, el alcance temporal es longitudinal, porque se trabaja
+con una serie de precios diarios a lo largo de dieciséis años, entre 2010 y 2025.
+
+La unidad de análisis es un proyecto minero de cobre a tajo abierto, construido
+con parámetros físicos y financieros tomados de fuentes públicas verificables.
+Conviene precisar por qué se modela un proyecto de este tipo y no una mina en
+operación. Las empresas en producción no publican sus flujos de caja por unidad
+minera con el detalle que exige un cálculo de VAN y TIR, de modo que trabajar con
+una de ellas obligaría a estimar la mayor parte de los datos. En cambio, los
+estudios económicos preliminares de proyectos aún no desarrollados sí publican
+abiertamente la escala, la ley, la recuperación y la inversión estimada. Modelar
+un proyecto tipo a partir de esa información permite que cada supuesto tenga una
+fuente declarada y que cualquier lector pueda rehacer el cálculo.
+
+Esta decisión tiene además respaldo en la literatura. Trabajar con un proyecto
+hipotético representativo es una estrategia aceptada en la economía minera:
+\textcite{cunningham2025} evalúa de manera cualitativa los perfiles de riesgo y
+retorno del financiamiento de proyectos comparando un depósito de pórfido de cobre
+tipo con un depósito kimberlítico diamantífero tipo, y analiza cuatro etapas
+sucesivas: el depósito, la construcción, la producción y la venta final del mineral.
+El proyecto modelado en este trabajo corresponde precisamente a un pórfido de cobre.
+
+Esa literatura también advierte por qué conviene tratar con cautela las cifras de los
+estudios preliminares. \textcite{lagos2026} evaluaron el cumplimiento de la propuesta
+de valor de 80 proyectos de cobre nuevos desarrollados entre 2015 y 2022, y
+encontraron que, en promedio, presentaron un sobrecosto de 21,1\,\% y un retraso de
+3,3 años respecto de las estimaciones de prefactibilidad. Entre las causas recurrentes
+señalan conflictos comunitarios no resueltos, dificultades de permisos ambientales,
+infraestructura de soporte insuficiente, inflación de costos e interrupciones de
+financiamiento. Este antecedente es relevante para el presente estudio porque sus
+parámetros provienen de un estudio económico preliminar, es decir, de una etapa aún
+más temprana que la prefactibilidad.
+
+\subsection{El proyecto modelado}
+
+Los parámetros físicos provienen del estudio económico preliminar actualizado del
+proyecto Cotabambas, ubicado en la región de Apurímac, difundido por Panoro
+Minerals en su comunicado oficial del 22 de septiembre de 2015. Se adoptó el
+criterio de tomar la escala, la vida útil y la ley de una sola fuente, en lugar de
+combinar cifras de documentos distintos. La razón es de coherencia interna: la
+capacidad de procesamiento, los años de operación y la ley de alimentación de un
+proyecto se calculan conjuntamente en el plan minero, de modo que mezclarlos con
+los de otro estudio produciría un proyecto que no existe. Este criterio se aplicó
+incluso cuando existía información más reciente, como el informe técnico NI 43-101
+de Cotabambas de 2023, cuyos recursos actualizados no se usaron para el caso base
+justamente porque no vienen acompañados del plan minero correspondiente.
+
+La capacidad de procesamiento es de 80\,000 toneladas por día y la vida útil del
+proyecto es de 17 años, lo que equivale a un total de 483 millones de toneladas de
+mineral procesado. En el modelo se distribuye ese tonelaje en partes iguales entre
+los diecisiete años, de modo que la capacidad permanece constante y la vida útil
+varía solo cuando se la somete a sensibilidad.
+
+La ley de alimentación de referencia es de 0,318\,\% de cobre. No se tomó de una
+tabla directamente, sino que se calculó como el promedio ponderado por tonelaje de
+los dos recursos que reporta el propio estudio preliminar: 127,3 millones de
+toneladas indicadas con 0,37\,\% de cobre y 355,8 millones de toneladas inferidas
+con 0,30\,\%. El cálculo es el siguiente:
+
+\begin{equation}
+\text{Ley}_{\text{ponderada}} =
+\frac{127{,}3 \times 0{,}37 + 355{,}8 \times 0{,}30}{483{,}1} \approx 0{,}318\,\%
+\end{equation}
+
+Se optó por la ley ponderada y no por la del recurso indicado por sí solo porque
+la vida útil de diecisiete años solo se alcanza procesando ambos recursos, de
+manera que la ley que efectivamente alimentaría la planta es la del conjunto.
+
+La recuperación metalúrgica adoptada es de 84\,\%. Este parámetro constituye la
+principal transferencia desde otra fuente y así se declara: corresponde a la
+recuperación de cobre del pórfido fresco reportada en la Tabla 13-1 del informe
+técnico NI 43-101 del proyecto La Granja, de First Quantum Minerals, publicado en
+mayo de 2026. Se eligió ese valor porque el pórfido fresco es mineral sulfurado
+primario, equivalente al material hipógeno que domina el recurso de Cotabambas, y
+porque el mismo informe señala que la mineralización pórfida sulfurada primaria
+alcanza recuperaciones de entre 80\,\% y 85\,\%. La limitación de usar un dato de
+otro proyecto se declara expresamente en el apartado de limitaciones.
+
+Con esos tres parámetros, la producción anual de cobre recuperado del modelo
+asciende a 167,3 millones de libras, resultado de multiplicar el tonelaje anual
+por la ley y por la recuperación, y de convertir toneladas métricas a libras con
+el factor de 2\,204,62 libras por tonelada.
+
+Conviene precisar qué mide esa cifra. Las 167,3 millones de libras corresponden a
+\textbf{cobre recuperado}, es decir, el metal que llega al concentrado. No equivalen al
+cobre que la fundición efectivamente paga. El estudio económico preliminar reporta
+155,1 millones de libras anuales de \textbf{cobre pagable}, una cifra alrededor de
+8\,\% menor, y esa diferencia se descompone en dos causas independientes.
+
+La primera es la tasa de pago del concentrado. El informe técnico declara un
+\emph{pay factor} para el cobre de entre 96,3\,\% y 96,5\,\%, según se tome la tabla de
+términos de fundición o el cuadro de supuestos económicos, pues el documento consigna
+ambos valores. Aplicando esa tasa, las 167,3 millones de libras recuperadas del modelo
+equivalen a unos 161,1 millones de libras pagables, lo que explica alrededor de
+3,7 puntos porcentuales de la diferencia.
+
+La segunda es la recuperación metalúrgica. Despejando la recuperación que igualaría la
+producción del modelo con la del estudio preliminar, manteniendo el tonelaje, la ley y
+la tasa de pago, se obtiene un valor implícito cercano a 80,8\,\%, por debajo del 84\,\%
+adoptado. Este valor implícito es un cálculo propio y no una cifra publicada por el
+estudio, que no declara su recuperación en el documento consultado. La comprobación
+cierra: con una recuperación de 80,8\,\% y una tasa de pago de 96,3\,\%, el modelo
+produce 155,0 millones de libras pagables, frente a las 155,1 reportadas.
+
+Se optó por mantener el 84\,\% porque proviene de una fuente publicada y verificable,
+mientras que el 80,8\,\% es una inferencia propia. La consecuencia se declara
+expresamente: al trabajar con cobre recuperado y con una recuperación algo superior a la
+implícita en el estudio de referencia, los ingresos del modelo constituyen una
+\textbf{cota superior}, y el VAN obtenido debe leerse en ese sentido.
