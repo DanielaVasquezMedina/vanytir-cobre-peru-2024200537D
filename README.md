@@ -87,7 +87,7 @@ y 196 sin tipo de cambio, con 7 días a los que les faltan ambos. Al descartarla
 observaciones completas** del archivo procesado. La resta se puede comprobar directamente sobre
 `datos_crudos/datos_crudos_2024200537D.csv`.
 
-Una reejecución del script 01 realizada el 22-11-2026 devolvió un archivo JSON idéntico byte por byte al de
+Una reejecución del script 01, registrada en la bitácora el 27-11-2026 a las 03:56 (hora del entorno de ejecución), devolvió un archivo JSON idéntico byte por byte al de
 la extracción original, de modo que la serie no fue revisada por la fuente entre ambas fechas.
 
 ## Limitaciones declaradas

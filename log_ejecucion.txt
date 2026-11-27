@@ -12,3 +12,6 @@ Analisis VAN-TIR | 9 escenarios | salidas/resultados_van_tir_2024200537D.csv
 2026-11-27T03:56:03 | Crudo en CSV | 4174 filas | 4 columnas | datos_crudos/datos_crudos_2024200537D.csv | SHA-256 20abd4384ec470d3ad37b55b2ef5139b582b8d0586701d4cde491d658856a356 | sin cambios respecto de la descarga anterior
 Analisis VAN-TIR | 9 escenarios | salidas/resultados_van_tir_2024200537D.csv
 Contexto nacional | 16 anios | 8 columnas | salidas/contexto_nacional_2024200537D.csv
+Analisis VAN-TIR | 9 escenarios | salidas/resultados_van_tir_2024200537D.csv
+Estadisticos del precio | 12 indicadores | salidas/estadisticos_precio_2024200537D.csv
+Contexto nacional | 16 anios | 8 columnas | salidas/contexto_nacional_2024200537D.csv

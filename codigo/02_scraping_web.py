@@ -20,7 +20,9 @@ ARCHIVO_LOG = "log_ejecucion.txt"
 os.makedirs(CARPETA, exist_ok=True)
 
 # Descarga el archivo; si falla, el script se detiene
-momento = datetime.datetime.now().isoformat(timespec="seconds")
+# astimezone() adjunta el desplazamiento horario, para que la hora de la bitácora no
+# sea ambigua: Colab corre en UTC y el usuario está en Lima (UTC-05:00).
+momento = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
 respuesta = requests.get(URL, headers=CABECERAS, timeout=TIMEOUT)
 respuesta.raise_for_status()
 

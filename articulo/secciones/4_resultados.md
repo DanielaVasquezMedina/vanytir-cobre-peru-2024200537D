@@ -1,9 +1,9 @@
-# 3. Resultados
+# 4. Resultados
 
 Esta sección presenta los resultados obtenidos con el modelo descrito. Se limita a
 describir lo que muestran las cifras; su interpretación corresponde a la discusión.
 
-## 3.1 El proyecto modelado en el contexto de la producción nacional
+## 4.1 El proyecto modelado en el contexto de la producción nacional
 
 Antes de presentar los indicadores financieros conviene establecer la escala del proyecto
 evaluado. Con la ley de 0.318 % y la recuperación metalúrgica de 84 % señaladas en la
@@ -56,14 +56,22 @@ por el precio, cuyo promedio anual subió de 3.4179 a 4.5039 dólares por libra,
 de modo que la variación del valor se descompone por completo en una variación de cantidad
 y una de precio.
 
-## 3.2 Comportamiento del precio del cobre en el periodo
+## 4.2 Comportamiento del precio del cobre en el periodo
 
 La serie diaria del precio del cobre entre 2010 y 2025 comprende 3 974 observaciones.
 Su valor mínimo es de 1.9552 dólares por libra, registrado el 15 de enero de 2016, y su
 máximo de 5.6753 dólares por libra, alcanzado el 30 de diciembre de 2025, último día de
 la ventana de estudio. La media del periodo es de 3.3849 dólares por libra y la mediana
-de 3.3137. La Figura 1 presenta la evolución de la serie junto con los tres umbrales de
-viabilidad del proyecto.
+de 3.3137.
+
+La variabilidad del precio se resume en cuatro indicadores de dispersión. La desviación
+estándar es de 0.7228 dólares por libra, que frente a una media de 3.3849 arroja un
+coeficiente de variación de 21.35 %: el precio se apartó de su valor medio, en promedio,
+en poco más de una quinta parte de ese valor. El rango intercuartílico es de 1.1986
+dólares por libra, de modo que la mitad central de los días se ubicó entre 2.7997 y
+3.9984. El rango total alcanza 3.7201 dólares por libra y el precio máximo del periodo
+equivale a 2.90 veces el mínimo. La Figura 1 presenta la evolución de la serie junto con
+los tres umbrales de viabilidad del proyecto.
 
 El recorrido muestra tres fases. Entre 2010 y 2014 el precio se mantiene en niveles
 altos, con un máximo superior a 4.50 dólares por libra en 2011. Entre 2015 y 2020
@@ -79,7 +87,7 @@ Nota. Elaboración propia con datos del Banco Central de Reserva del Perú, seri
 PD04701XD. El área sombreada corresponde al rango de precios en que el proyecto
 presentaría un valor actual neto negativo con el escenario de inversión central.
 
-## 3.3 Resultados del caso base
+## 4.3 Resultados del caso base
 
 Con el precio mediano de 3.3137 dólares por libra y la inversión central de 1 388.0
 millones de dólares, el proyecto produce 167.3 millones de libras de cobre recuperado al
@@ -103,7 +111,7 @@ Nota. Elaboración propia. La curva acumula los flujos de caja descontados a la 
 10.13 %. El punto de cruce con el eje horizontal es el periodo de recuperación
 descontado y el valor final equivale al valor actual neto.
 
-## 3.4 Resultados por escenario de precio e inversión
+## 4.4 Resultados por escenario de precio e inversión
 
 La Tabla 2 presenta el valor actual neto y la tasa interna de retorno de las nueve
 combinaciones posibles entre los tres escenarios de precio y los tres de inversión.
@@ -138,7 +146,7 @@ Nota. Elaboración propia. Los escenarios de precio corresponden a los percentil
 y 75 de la serie diaria del periodo; los de inversión, a los mismos percentiles de la
 cartera de proyectos mineros del Ministerio de Energía y Minas.
 
-## 3.5 Precio de equilibrio y frecuencia histórica
+## 4.5 Precio de equilibrio y frecuencia histórica
 
 Para cada escenario de inversión se calculó el precio del cobre que anula el valor actual
 neto. La Tabla 3 presenta esos umbrales junto con el número de días del periodo en que el
@@ -177,7 +185,7 @@ Nota. Elaboración propia con datos del Banco Central de Reserva del Perú. Cada
 marca el precio de equilibrio de un escenario de inversión y el porcentaje acumulado de
 días que le corresponde.
 
-## 3.6 Sensibilidad del resultado a cada supuesto
+## 4.6 Sensibilidad del resultado a cada supuesto
 
 La Figura 5 presenta el análisis de tornado, que mueve cada supuesto por separado a los
 extremos de su rango manteniendo los demás en su valor central. Los supuestos aparecen

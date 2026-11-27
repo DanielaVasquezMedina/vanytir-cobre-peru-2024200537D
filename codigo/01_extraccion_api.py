@@ -177,7 +177,11 @@ print(estado_fuente.upper() if estado_fuente.startswith("ATENCION") else estado_
 # 6. REGISTRO EN LA BITÁCORA
 # ---------------------------------------------------------------------------
 # El numeral 2.4.2 pide fecha y hora de cada extracción, número de filas y código HTTP.
-sello = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+# astimezone() adjunta el desplazamiento horario del entorno. Sin él, un mismo sello
+# puede leerse como hora local o como UTC: Colab corre en UTC y el usuario está en
+# Lima (UTC-05:00), de modo que una corrida de las 22:56 figuraría como las 03:56
+# del día siguiente. Con el desplazamiento explícito la hora deja de ser ambigua.
+sello = datetime.now().astimezone().isoformat(timespec="seconds")
 with open(ARCHIVO_LOG, "a", encoding="utf-8") as log:
     log.write(
         f"{sello} | Extraccion API BCRP diaria | {len(respuestas)} tramos | "

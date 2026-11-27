@@ -75,6 +75,33 @@ PRECIO_ESCENARIOS = {
     "P75 (precio alto)": round(serie_precio.quantile(0.75), 4),    # un 75 % de los días tuvo un precio igual o menor
 }
 
+# --- Estadísticos descriptivos del precio ------------------------------------------
+# Responden al primer objetivo específico, que pide caracterizar el comportamiento y la
+# variabilidad del precio mediante indicadores descriptivos. Se separan en indicadores de
+# POSICION (donde se ubica el precio) y de DISPERSION (cuanto se aparta de ese centro),
+# porque la media por si sola no dice nada sobre la variabilidad.
+estadisticos_precio = pd.DataFrame([
+    {"indicador": "Observaciones", "valor": len(serie_precio), "tipo": "Tamaño"},
+    {"indicador": "Mínimo", "valor": serie_precio.min(), "tipo": "Posición"},
+    {"indicador": "Percentil 25", "valor": serie_precio.quantile(0.25), "tipo": "Posición"},
+    {"indicador": "Mediana", "valor": serie_precio.quantile(0.50), "tipo": "Posición"},
+    {"indicador": "Media", "valor": serie_precio.mean(), "tipo": "Posición"},
+    {"indicador": "Percentil 75", "valor": serie_precio.quantile(0.75), "tipo": "Posición"},
+    {"indicador": "Máximo", "valor": serie_precio.max(), "tipo": "Posición"},
+    # ddof=1: desviación muestral, la que corresponde cuando la serie se trata como muestra
+    {"indicador": "Desviación estándar", "valor": serie_precio.std(ddof=1), "tipo": "Dispersión"},
+    {"indicador": "Coeficiente de variación (%)",
+     "valor": serie_precio.std(ddof=1) / serie_precio.mean() * 100, "tipo": "Dispersión"},
+    {"indicador": "Rango intercuartílico",
+     "valor": serie_precio.quantile(0.75) - serie_precio.quantile(0.25), "tipo": "Dispersión"},
+    {"indicador": "Rango total", "valor": serie_precio.max() - serie_precio.min(), "tipo": "Dispersión"},
+    {"indicador": "Máximo sobre mínimo (veces)",
+     "valor": serie_precio.max() / serie_precio.min(), "tipo": "Dispersión"},
+]).round(4)
+estadisticos_precio.to_csv(
+    os.path.join(CARPETA_SALIDAS, "estadisticos_precio_2024200537D.csv"),
+    index=False, encoding="utf-8")
+
 # --- Justificación de la frecuencia diaria -------------------------------------------
 # El docente autorizó también la frecuencia trimestral. Este bloque compara las dos para
 # documentar por qué se trabaja con la diaria, en lugar de afirmarlo sin evidencia.
@@ -651,6 +678,8 @@ plt.close(fig)
 # ---------------------------------------------------------------------------
 print("Producción anual de cobre (millones de libras):", round(libras_cobre_por_anio(LEY_CENTRAL, RECUPERACION_CENTRAL), 1))
 print("Escenarios de precio (US$/lb):", PRECIO_ESCENARIOS)
+print("\nEstadísticos descriptivos del precio del cobre:")
+print(estadisticos_precio.to_string(index=False))
 print("\nFrecuencia diaria frente a trimestral (justifica la frecuencia elegida):")
 print(comparacion_frecuencia.to_string(index=False))
 print(f"  Al promediar por trimestre se pierde el {num(PERDIDA_RECORRIDO_PCT, 0)} % del recorrido del precio")
@@ -688,5 +717,7 @@ pd.DataFrame([{
 
 with open(ARCHIVO_LOG, "a", encoding="utf-8") as log:
     log.write(f"Analisis VAN-TIR | {len(tabla_escenarios)} escenarios | salidas/resultados_van_tir_2024200537D.csv\n")
+    log.write(f"Estadisticos del precio | {len(estadisticos_precio)} indicadores | "
+              f"salidas/estadisticos_precio_2024200537D.csv\n")
     log.write(f"Contexto nacional | {len(tabla_contexto)} anios | {len(tabla_contexto.columns)} columnas | "
               f"salidas/contexto_nacional_2024200537D.csv\n")
